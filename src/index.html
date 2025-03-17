@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>AI Image Generator</title>
+        <link rel="stylesheet" href="./output.css">
+    </head>
+    <body class="bg-gradient-to-t from-[#e6af5e] to-[#00e5ff] h-screen flex items-center justify-center min-h-screen bg-gray-100">
+        <div class="bg-white p-8 rounded-lg shadow-lg max-w-lg w-full text-center">
+            <h1 class="text-3xl font-bold mb-6 bg-gradient-to-t from-[#e6af5e] to-[#00e5ff] text-transparent bg-clip-text">
+                AI Image Generator
+            </h1>            
+            <input type="text" id="inputText" class="w-full p-3 border rounded-md mb-4" placeholder="Enter text...">
+            <button onclick="generateImage()" class="bg-gradient-to-t from-[#9e8054] to-[#47878e] text-white px-5 py-3 rounded-lg hover:bg-gradient-to-t hover:from-[#e6af5e] hover:to-[#00e5ff]">
+                Generate
+            </button>
+            <div id="loader" class="hidden mt-6 flex justify-center">
+                <div class="w-12 h-12 border-4 border-blue-500 border-dashed rounded-full animate-spin"></div>
+            </div>
+            <div class="mt-6">
+                <img id="generatedImage" class="w-full rounded-md hidden" alt="Generated Image">
+                <a id="downloadBtn" class="hidden mt-4 inline-block bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600 cursor-pointer">
+                    Download Image
+                </a>
+            </div>
+        </div>
+        <script>
+        async function generateImage() {
+            const text = document.getElementById("inputText").value;
+            if (!text) {
+                alert("Please enter text.");
+                return;
+            }
+    
+            document.getElementById("loader").classList.remove("hidden");
+            document.getElementById("generatedImage").classList.add("hidden");
+            document.getElementById("downloadBtn").classList.add("hidden");
+    
+            try {
+                const response = await fetch("http://localhost:5000/generate-image", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ prompt: text })
+                });
+    
+                const data = await response.json();
+                if (data.image) {
+                    const imageData = `data:image/webp;base64,${data.image.data[0].b64_json}`;
+                    const imageElement = document.getElementById("generatedImage");
+                    imageElement.src = imageData;
+                    imageElement.classList.remove("hidden");
+                    
+                    // Set up download button
+                    const downloadBtn = document.getElementById("downloadBtn");
+                    downloadBtn.href = imageData;
+                    downloadBtn.download = "generated_image.webp";
+                    downloadBtn.classList.remove("hidden");
+                } else {
+                    alert("Image generation failed.");
+                }
+            } catch (error) {
+                alert("Error generating image.");
+            } finally {
+                document.getElementById("loader").classList.add("hidden");
+            }
+        }
+        </script>
+    </body>
+</html>
